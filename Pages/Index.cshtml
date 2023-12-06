@@ -1,0 +1,15 @@
+﻿@page
+@using RealBuy.Components
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center head-banner">
+    <h1 class="display-4"><span class="bold-headPart">Real</span>Buy<sup>&reg;</sup></h1>
+    
+</div>
+
+@(await Html.RenderComponentAsync<ProductList>(RenderMode.ServerPrerendered))
+
+<script src="_framework/blazor.server.js"></script>

@@ -1,0 +1,117 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using RealBuy.Models
+@using RealBuy.Services
+@inject JSONFileProductService ProductService
+
+<div class="main-container">
+    @foreach (var product in ProductService.GetProducts())
+    {
+        <div class="product-card">
+            <div class="product-info-title">
+                <h1>@product.title</h1>
+            </div>
+
+            <div class="product-info-image">
+                <img src="@product.imgURL" alt="@product.title image">
+            </div>
+
+            <div class="product-info-meta">
+                <p><i class="@product.logoURL"></i> @product.company</p>
+                <span>
+                    <i style="margin-left:0px;" class="fa-regular fa-share-from-square"></i>
+                    <div class="rating-bar">
+                       <!-- <i class="fa fa-star"></i>
+                        <i class="fa-regular fa-star"></i>
+                        <i class="fa-regular fa-star"></i>
+                        <i class="fa-regular fa-star"></i>
+                        <i class="fa-regular fa-star"></i>-->
+
+                        @for(int i = 0; i <6; i++)
+                        {
+                            var currentStar = i;
+                            if(i <= currentRating)
+                            {
+                                <i class="fa fa-star" @onclick="(e => {SelectProduct(product.id); SubmitRating(currentStar); })"></i>
+                            }
+                            else
+                            {
+                                <span class="fa-regular fa-star" @onclick="(e => {SelectProduct(product.id); SubmitRating(currentStar);})"></span>
+                            }
+                        }
+                    </div>
+                </span>
+                @if (voteCount == 0)
+                {
+                    <p>O</p>
+                }
+                else
+                {
+                    <p>@voteCount @voteLabel</p>
+                }
+            </div>
+
+            <div class="product-info-price">
+                <!--add price tag font-awesome-->
+                <!--format should be changes to {0:c} for region set currencies-->
+               <h2>@(String.Format("$ {0:N0}", Convert.ToDouble(product.price.Split(' ')[1]))) <span class="region-currency"> @(String.Format("{0:c}", Convert.ToDouble(product.price.Split(' ')[1])*150 /*convertedPrice*/))</span></h2>
+                
+            </div>
+
+            <div class="product-info-body">
+                <p>@product.desc</p>
+                <div class="checkout-and-shipping-container">
+                    <p>
+                        <i class="fa fa-location-dot"></i>
+                        Ships to Kenya
+                    </p>
+                    <p>Shipments are processed inclusive of VAT, tarrifs paid uprfront on checkout.</p>
+                    <a href="" @onclick="(e => SelectProduct(product.id))"><i class="fa fa-wallet"></i> Buy now</a> <a href=""><i class="fa fa-basket-shopping"></i> Add to basket</a>
+                </div>
+            </div>
+
+        </div>
+
+    }
+
+</div>
+
+@code{
+    Product selectedProduct;
+    string selectedProdId;
+
+    void SelectProduct(string productId)
+    {
+        selectedProdId = productId;
+        selectedProduct = ProductService.GetProducts().First(x => x.id == productId);
+        GetCurrentRating();
+    }
+
+   int currentRating = 0;
+    int voteCount = 0;
+    string voteLabel;
+
+    void GetCurrentRating()
+    {
+        if(selectedProduct.Ratings == null)
+        {
+            currentRating = 0;
+            voteCount = 0;
+        }
+        else
+        {
+            voteCount = selectedProduct.Ratings.Count();
+            voteLabel = voteCount > 1 ? "Votes" : "Vote";
+            currentRating = selectedProduct.Ratings.Sum()/voteCount;
+        }
+
+        Console.WriteLine($"Rating for {selectedProduct.id}: {currentRating}");
+    }
+
+    void SubmitRating(int rating)
+    {
+        
+        ProductService.AddRating(selectedProdId,rating);
+        SelectProduct(selectedProdId);
+    }
+
+}
